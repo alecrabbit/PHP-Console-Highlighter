@@ -33,7 +33,7 @@ class Highlighter
 
         self::ACTUAL_LINE_MARK => 'red',
         self::LINE_NUMBER => 'dark_gray',
-        self::LINE_NUMBER_DIVIDER => 'dark',
+        self::LINE_NUMBER_DIVIDER => 'dark_gray',
         self::MARKED_LINE_NUMBER => ['light_red', 'italic'],
     ];
 
