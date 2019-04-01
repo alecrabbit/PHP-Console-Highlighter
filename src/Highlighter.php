@@ -230,7 +230,7 @@ class Highlighter
     {
         end($lines);
         $lineStrlen = strlen(key($lines) + 1);
-
+        $lineStrlen = $lineStrlen < self::WIDTH ? self::WIDTH : $lineStrlen;
         $snippet = '';
         foreach ($lines as $i => $line) {
             if ($markLine !== null) {
@@ -262,7 +262,6 @@ class Highlighter
      */
     protected function coloredLineNumber($style, $i, $lineStrlen)
     {
-        $lineStrlen = $lineStrlen < self::WIDTH ? self::WIDTH : $lineStrlen;
         return $this->color->apply($style, str_pad($i + 1, $lineStrlen, ' ', STR_PAD_LEFT));
     }
 
