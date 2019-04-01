@@ -18,7 +18,8 @@ class Highlighter
     const LINE_NUMBER_DIVIDER = 'line_divider',
         MARKED_LINE_NUMBER = 'marked_line';
     const DIVIDER_SYMBOL = '│';
-    const ARROW_SYMBOL = '▶';
+    const ARROW_SYMBOL = '>'; //'➜';
+    const WIDTH = 3;
 
     /** @var ConsoleColor */
     private $color;
@@ -31,10 +32,10 @@ class Highlighter
         self::TOKEN_DEFAULT => 'default',
         self::TOKEN_HTML => 'cyan',
 
-        self::ACTUAL_LINE_MARK => 'red',
+        self::ACTUAL_LINE_MARK => 'none',
         self::LINE_NUMBER => 'dark_gray',
         self::LINE_NUMBER_DIVIDER => 'dark_gray',
-        self::MARKED_LINE_NUMBER => ['light_red', 'italic'],
+        self::MARKED_LINE_NUMBER => ['italic', 'bold', 'bg_black'],
     ];
 
     /**
@@ -233,14 +234,14 @@ class Highlighter
         $snippet = '';
         foreach ($lines as $i => $line) {
             if ($markLine !== null) {
-                $snippet .= ($markLine === $i + 1 ? $this->color->apply(self::ACTUAL_LINE_MARK,
-                    '  ' . self::ARROW_SYMBOL . ' ') : '    ');
                 $snippet .=
-                    (
-                    $markLine === $i + 1 ?
+                    ($markLine === $i + 1 ?
+                        $this->color->apply(self::ACTUAL_LINE_MARK, self::ARROW_SYMBOL . ' ') :
+                        '  ');
+                $snippet .=
+                    ($markLine === $i + 1 ?
                         $this->coloredLineNumber(self::MARKED_LINE_NUMBER, $i, $lineStrlen) :
-                        $this->coloredLineNumber(self::LINE_NUMBER, $i, $lineStrlen)
-                    );
+                        $this->coloredLineNumber(self::LINE_NUMBER, $i, $lineStrlen));
             } else {
                 $snippet .= $this->coloredLineNumber(self::LINE_NUMBER, $i, $lineStrlen);
             }
@@ -261,6 +262,7 @@ class Highlighter
      */
     protected function coloredLineNumber($style, $i, $lineStrlen)
     {
+        $lineStrlen = $lineStrlen < self::WIDTH ? self::WIDTH : $lineStrlen;
         return $this->color->apply($style, str_pad($i + 1, $lineStrlen, ' ', STR_PAD_LEFT));
     }
 
