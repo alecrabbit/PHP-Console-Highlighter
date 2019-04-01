@@ -18,7 +18,7 @@ class Highlighter
     const LINE_NUMBER_DIVIDER = 'line_divider',
         MARKED_LINE_NUMBER = 'marked_line';
     const DIVIDER_SYMBOL = '│';
-    const ARROW_SYMBOL = '>'; //'➜';
+    const ARROW_SYMBOL = '>'; //'➜'; // '▶';
     const WIDTH = 3;
 
     /** @var ConsoleColor */
