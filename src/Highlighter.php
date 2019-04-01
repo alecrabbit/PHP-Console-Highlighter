@@ -233,13 +233,16 @@ class Highlighter
         $snippet = '';
         foreach ($lines as $i => $line) {
             if ($markLine !== null) {
-                $snippet .= ($markLine === $i + 1 ? $this->color->apply(self::ACTUAL_LINE_MARK, '  ' . self::ARROW_SYMBOL . ' ') : '    ');
+                $snippet .= ($markLine === $i + 1 ? $this->color->apply(self::ACTUAL_LINE_MARK,
+                    '  ' . self::ARROW_SYMBOL . ' ') : '    ');
                 $snippet .=
                     (
                     $markLine === $i + 1 ?
-                        $this->color->apply(self::MARKED_LINE_NUMBER, str_pad($i + 1, $lineStrlen, ' ', STR_PAD_LEFT)) :
-                        $this->color->apply(self::LINE_NUMBER, str_pad($i + 1, $lineStrlen, ' ', STR_PAD_LEFT))
+                        $this->coloredLineNumber(self::MARKED_LINE_NUMBER, $i, $lineStrlen) :
+                        $this->coloredLineNumber(self::LINE_NUMBER, $i, $lineStrlen)
                     );
+            } else {
+                $snippet .= $this->coloredLineNumber(self::LINE_NUMBER, $i, $lineStrlen);
             }
 
             $snippet .= $this->color->apply(self::LINE_NUMBER_DIVIDER, self::DIVIDER_SYMBOL . ' ');
@@ -247,6 +250,18 @@ class Highlighter
         }
 
         return $snippet;
+    }
+
+    /**
+     * @param mixed $style
+     * @param int $i
+     * @param int $lineStrlen
+     * @return string
+     * @throws \JakubOnderka\PhpConsoleColor\InvalidStyleException
+     */
+    protected function coloredLineNumber($style, $i, $lineStrlen)
+    {
+        return $this->color->apply($style, str_pad($i + 1, $lineStrlen, ' ', STR_PAD_LEFT));
     }
 
     /**
