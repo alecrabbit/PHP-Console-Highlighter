@@ -1,4 +1,5 @@
 <?php
+
 namespace JakubOnderka\PhpConsoleHighlighter;
 
 use JakubOnderka\PhpConsoleColor\ConsoleColor;
@@ -14,20 +15,27 @@ class Highlighter
     const ACTUAL_LINE_MARK = 'actual_line_mark',
         LINE_NUMBER = 'line_number';
 
+    const LINE_NUMBER_DIVIDER = 'line_divider',
+        MARKED_LINE_NUMBER = 'marked_line';
+    const DIVIDER_SYMBOL = '│';
+    const ARROW_SYMBOL = '▶';
+
     /** @var ConsoleColor */
     private $color;
 
     /** @var array */
-    private $defaultTheme = array(
+    private $defaultTheme = [
         self::TOKEN_STRING => 'red',
         self::TOKEN_COMMENT => 'yellow',
         self::TOKEN_KEYWORD => 'green',
         self::TOKEN_DEFAULT => 'default',
         self::TOKEN_HTML => 'cyan',
 
-        self::ACTUAL_LINE_MARK  => 'red',
+        self::ACTUAL_LINE_MARK => 'red',
         self::LINE_NUMBER => 'dark_gray',
-    );
+        self::LINE_NUMBER_DIVIDER => 'dark',
+        self::MARKED_LINE_NUMBER => ['light_red', 'italic'],
+    ];
 
     /**
      * @param ConsoleColor $color
@@ -69,37 +77,11 @@ class Highlighter
 
     /**
      * @param string $source
-     * @return string
-     * @throws \JakubOnderka\PhpConsoleColor\InvalidStyleException
-     * @throws \InvalidArgumentException
-     */
-    public function getWholeFile($source)
-    {
-        $tokenLines = $this->getHighlightedLines($source);
-        $lines = $this->colorLines($tokenLines);
-        return implode(PHP_EOL, $lines);
-    }
-
-    /**
-     * @param string $source
-     * @return string
-     * @throws \JakubOnderka\PhpConsoleColor\InvalidStyleException
-     * @throws \InvalidArgumentException
-     */
-    public function getWholeFileWithLineNumbers($source)
-    {
-        $tokenLines = $this->getHighlightedLines($source);
-        $lines = $this->colorLines($tokenLines);
-        return $this->lineNumbers($lines);
-    }
-
-    /**
-     * @param string $source
      * @return array
      */
     private function getHighlightedLines($source)
     {
-        $source = str_replace(array("\r\n", "\r"), "\n", $source);
+        $source = str_replace(["\r\n", "\r"], "\n", $source);
         $tokens = $this->tokenize($source);
         return $this->splitToLines($tokens);
     }
@@ -112,7 +94,7 @@ class Highlighter
     {
         $tokens = token_get_all($source);
 
-        $output = array();
+        $output = [];
         $currentType = null;
         $buffer = '';
 
@@ -128,7 +110,7 @@ class Highlighter
                     case T_STRING:
                     case T_VARIABLE:
 
-                    // Constants
+                        // Constants
                     case T_DIR:
                     case T_FILE:
                     case T_METHOD_C:
@@ -168,7 +150,7 @@ class Highlighter
             }
 
             if ($currentType !== $newType) {
-                $output[] = array($currentType, $buffer);
+                $output[] = [$currentType, $buffer];
                 $buffer = '';
                 $currentType = $newType;
             }
@@ -177,7 +159,7 @@ class Highlighter
         }
 
         if (isset($newType)) {
-            $output[] = array($newType, $buffer);
+            $output[] = [$newType, $buffer];
         }
 
         return $output;
@@ -189,21 +171,21 @@ class Highlighter
      */
     private function splitToLines(array $tokens)
     {
-        $lines = array();
+        $lines = [];
 
-        $line = array();
+        $line = [];
         foreach ($tokens as $token) {
             foreach (explode("\n", $token[1]) as $count => $tokenLine) {
                 if ($count > 0) {
                     $lines[] = $line;
-                    $line = array();
+                    $line = [];
                 }
 
                 if ($tokenLine === '') {
                     continue;
                 }
 
-                $line[] = array($token[0], $tokenLine);
+                $line[] = [$token[0], $tokenLine];
             }
         }
 
@@ -220,7 +202,7 @@ class Highlighter
      */
     private function colorLines(array $tokenLines)
     {
-        $lines = array();
+        $lines = [];
         foreach ($tokenLines as $lineCount => $tokenLine) {
             $line = '';
             foreach ($tokenLine as $token) {
@@ -251,13 +233,45 @@ class Highlighter
         $snippet = '';
         foreach ($lines as $i => $line) {
             if ($markLine !== null) {
-                $snippet .= ($markLine === $i + 1 ? $this->color->apply(self::ACTUAL_LINE_MARK, '  > ') : '    ');
+                $snippet .= ($markLine === $i + 1 ? $this->color->apply(self::ACTUAL_LINE_MARK, '  ' . self::ARROW_SYMBOL . ' ') : '    ');
+                $snippet .=
+                    (
+                    $markLine === $i + 1 ?
+                        $this->color->apply(self::MARKED_LINE_NUMBER, str_pad($i + 1, $lineStrlen, ' ', STR_PAD_LEFT)) :
+                        $this->color->apply(self::LINE_NUMBER, str_pad($i + 1, $lineStrlen, ' ', STR_PAD_LEFT))
+                    );
             }
 
-            $snippet .= $this->color->apply(self::LINE_NUMBER, str_pad($i + 1, $lineStrlen, ' ', STR_PAD_LEFT) . '│ ');
+            $snippet .= $this->color->apply(self::LINE_NUMBER_DIVIDER, self::DIVIDER_SYMBOL . ' ');
             $snippet .= $line . PHP_EOL;
         }
 
         return $snippet;
+    }
+
+    /**
+     * @param string $source
+     * @return string
+     * @throws \JakubOnderka\PhpConsoleColor\InvalidStyleException
+     * @throws \InvalidArgumentException
+     */
+    public function getWholeFile($source)
+    {
+        $tokenLines = $this->getHighlightedLines($source);
+        $lines = $this->colorLines($tokenLines);
+        return implode(PHP_EOL, $lines);
+    }
+
+    /**
+     * @param string $source
+     * @return string
+     * @throws \JakubOnderka\PhpConsoleColor\InvalidStyleException
+     * @throws \InvalidArgumentException
+     */
+    public function getWholeFileWithLineNumbers($source)
+    {
+        $tokenLines = $this->getHighlightedLines($source);
+        $lines = $this->colorLines($tokenLines);
+        return $this->lineNumbers($lines);
     }
 }
